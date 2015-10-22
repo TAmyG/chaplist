@@ -1,14 +1,7 @@
 var express         = require("express"),
     app             = express(),
     bodyParser      = require("body-parser"),
-    methodOverride  = require("method-override"),
-    mongoose        = require('mongoose');
-
-// Connection to DB
-mongoose.connect('mongodb://localhost/tvshows', function(err, res) {
-  if(err) throw err;
-  console.log('Connected to Database');
-});
+    methodOverride  = require("method-override");
 
 // Middlewares
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -19,12 +12,18 @@ app.get('/', function(req, res) {
   res.send("Hello world!");
 });
 
-var routes = require('./routes/tvshows');//(app);
+var routes = require('./routes/chapListCtrl');//(app)
 
 app.get('/tvshow', routes.findAllTVShows);
 app.get('/tvshow/:id', routes.findById);
-app.post('/tvshow', routes.addTVShow);
+app.get('/list/:userId', routes.getLists);
+/*POST*/
+app.post('/user', routes.addUser);
+app.post('/login', routes.login);
+app.post('/list', routes.addList);
+/*PUT*/
 app.put('/tvshow/:id', routes.updateTVShow);
+/*DELETE*/
 app.delete('/tvshow/:id', routes.deleteTVShow);
 
 // Start server

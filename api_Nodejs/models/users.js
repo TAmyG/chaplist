@@ -6,7 +6,7 @@ connection = mysql.createConnection(
         host: 'localhost', 
         user: 'root',  
         password: 'root', 
-        database: 'restnode'
+        database: 'ChapList_DB'
     }
 );
 
@@ -56,7 +56,8 @@ userModel.insertUser = function(userData,callback)
 {
     if (connection) 
     {
-        connection.query('INSERT INTO users SET ?', userData, function(error, result) 
+        connection.query('CALL CREAR_USUARIO(?,?,?,?,?,?,?)', [userData.nombre,userData.correo,userData.pass,userData.nacimiento,
+                                                               ,userData.nick,userData.sexo,userData.apellido], function(error, result) 
         {
             if(error)
             {
@@ -65,10 +66,11 @@ userModel.insertUser = function(userData,callback)
             else
             {
                 //devolvemos la última id insertada
-                callback(null,{"insertId" : result.insertId});
+                //callback(null,{"insertId" : result.insertId});
             }
         });
     }
+    console.log(userData);
 }
  
 //actualizar un usuario

@@ -1,0 +1,30 @@
+/*JSON de prueba*/
+post - /user  adduser
+{
+"nombre": "TAmy",
+"apellido": "Vivas",
+"correo":"tAmy.vivas@gmail.com",
+"pass":"123",
+"nacimiento":"15/06/1993",
+"nick":"TAmyG",
+"sexo": 1
+}
+
+post - /login  login
+{
+"correo":"tAmy.vivas@gmail.com",
+"pass":"123",
+"nick":"TAmyG"
+}
+
+post - /list  addList
+{
+"name":"Fiesta de Luis",
+"description":"Cumpleaños de luis, comprar insumos para la fiesta",
+"date":"22/10/2015",
+"userId": 1
+}
+
+
+get - /list getList
+ /list:userId

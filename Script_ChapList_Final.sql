@@ -60,6 +60,7 @@ CREATE TABLE IF NOT EXISTS `ChapList_DB`.`listas` (
   `descripcion` VARCHAR(100) NULL COMMENT '',
   `fecha` VARCHAR(45) NULL COMMENT '',
   `usuario_idusuario` INT NOT NULL COMMENT '',
+  `borrado` BOOL  NULL COMMENT '', 
   PRIMARY KEY (`idlistas`)  COMMENT '',
   INDEX `fk_listas_usuario1_idx` (`usuario_idusuario` ASC)  COMMENT '',
   CONSTRAINT `fk_listas_usuario1`
@@ -162,18 +163,16 @@ END $
 -- -----------------------------------------------------
 DROP PROCEDURE IF EXISTS ChapList_DB.LOGIN;
 $
-CREATE PROCEDURE LOGIN(IN COR VARCHAR(45),IN PASSW VARCHAR(45),NIC VARCHAR(45))
+CREATE PROCEDURE LOGIN(IN USU VARCHAR(45),IN PASSW VARCHAR(45))
 BEGIN
-	IF (!(COR = '')) 
+DECLARE usr INT;
+
+SET usr = USER_EXISTS(USU);
+	IF (usr <> -1) 
 		THEN SELECT idusuario,nick 
 			 FROM usuario 
-			 WHERE COR=correo 
+			 WHERE idusuario = usr 
 			 AND  unhex(md5(PASSW))=PASS;
-	ELSEIF (!(NIC ='')) 
-		THEN SELECT idusuario,nick
-			 FROM usuario 
-			 WHERE NIC=nick 
-			 AND unhex(md5(PASSW))=PASS;
 	ELSE
 		 SELECT '-1' as idusuario; 
 	End if;
@@ -217,6 +216,19 @@ BEGIN
 END $
 
 -- -----------------------------------------------------
+-- PROCEDIMIENTO PARA ELIMINAR LISTAS 
+-- -----------------------------------------------------
+DROP PROCEDURE IF EXISTS ChapList_DB.DELETE_LIST;
+$
+CREATE PROCEDURE DELETE_LIST(IN LISTA INT)
+BEGIN
+	UPDATE listas
+	SET borrado = TRUE 
+	WHERE idlista = LISTA;
+-- 	SELECT 'La lista se creo con exito' AS Mensaje;
+END $
+
+-- -----------------------------------------------------
 -- PROCEDIMIENTO PARA OBTENER LISTAS DE USUARIO
 -- -----------------------------------------------------
 DROP PROCEDURE IF EXISTS ChapList_DB.GET_LISTAS;
@@ -225,7 +237,23 @@ CREATE PROCEDURE GET_LISTAS(IN USR INT)
 BEGIN
 		SELECT idlistas,nombre,descripcion,fecha 
 		FROM listas 
-		WHERE usuario_idusuario = USR;
+		WHERE usuario_idusuario = USR
+        AND borrado <> TRUE;
+END $
+
+-- -----------------------------------------------------
+-- PROCEDIMIENTO PARA OBTENER LISTAS COMPARTIDAS DE USUARIO
+-- -----------------------------------------------------
+DROP PROCEDURE IF EXISTS ChapList_DB.GET_SHARE_LISTS;
+$
+CREATE PROCEDURE GET_SHARE_LISTS(IN USR INT)
+BEGIN
+
+            SELECT L.idlistas,L.nombre,L.descripcion,L.fecha,L.borrado
+            FROM listas L, compartir C
+            WHERE C.usuario_idusuario = USR
+            AND   C.listas_idlistas = L.idlistas
+            AND   L.borrado <> TRUE;
 END $
 
 -- --------------------------------------------------------------------
@@ -265,7 +293,7 @@ BEGIN
 END $
 
 -- -----------------------------------------------------
--- PROCEDIMIENTO PARA ELIMINAR PRODUCTOS A LISTA
+-- PROCEDIMIENTO PARA ELIMINAR PRODUCTOS DE LISTA
 -- -----------------------------------------------------
 DROP PROCEDURE IF EXISTS ChapList_DB.REMOVE_PROD_LIST;
 $
@@ -306,3 +334,94 @@ BEGIN
 	AND producto_idproducto = PROD;
 -- 	SELECT 'EL PRODUCTO SE ACTUALIZO EXITOSAMENTE' AS Mensaje;
 END $
+
+-- -----------------------------------------------------
+-- PROCEDIMIENTO PARA COMPARTIR  LISTAS
+-- -----------------------------------------------------
+DROP PROCEDURE IF EXISTS ChapList_DB.SHARE_LIST;
+$
+CREATE PROCEDURE SHARE_LIST(IN COR VARCHAR(100),IN NIC VARCHAR(100),IN LISTA INT)
+BEGIN
+DECLARE usuario int;
+SET usuario = GET_ID_USER(COR,NIC);
+	INSERT 
+	INTO compartir (listas_idlistas,usuario_idusuario)
+	VALUES (LISTA,usuario);
+-- 	SELECT 'EL PRODUCTO SE AGREGO EXITOSAMENTE' AS Mensaje;
+END $
+
+-- -----------------------------------------------------
+-- PROCEDIMIENTO PARA OBTENER ID POR CORREO O NICK	
+-- -----------------------------------------------------
+DROP PROCEDURE IF EXISTS ChapList_DB.GET_ID_USER;
+$
+CREATE PROCEDURE GET_ID_USER(IN COR VARCHAR(100), IN NIC VARCHAR(100))
+BEGIN
+	IF (COR = '')
+     THEN SELECT idususario
+     FROM usuario
+     WHERE nick = NIC;
+    ELSE
+     SELECT idusuario
+     FROM usuario
+     WHERE correo = COR;
+    END IF;
+-- 	SELECT 'EL PRODUCTO SE ACTUALIZO EXITOSAMENTE' AS Mensaje;
+END $
+
+-- -----------------------------------------------------
+-- FUNCION PARA OBTENER ID POR CORREO O NICK	
+-- -----------------------------------------------------
+DROP FUNCTION IF EXISTS ChapList_DB.GET_ID_USER;
+$
+CREATE FUNCTION GET_ID_USER(COR VARCHAR(100), NIC VARCHAR(100))
+RETURNS INT
+BEGIN
+DECLARE iduser int;
+
+	IF (COR = '')
+     THEN 
+          SET iduser =  (
+						SELECT idusuario
+                        FROM usuario
+                        WHERE nick = NIC
+                        );
+    ELSE
+          SET iduser =  (
+						SELECT idusuario
+                        FROM usuario
+                        WHERE correo = COR
+                        );
+                 
+    END IF;
+    
+    RETURN iduser;
+-- 	SELECT 'EL PRODUCTO SE ACTUALIZO EXITOSAMENTE' AS Mensaje;
+END $
+
+-- -----------------------------------------------------
+-- FUNCION PARA OBTENER ID POR CORREO O NICK	
+-- -----------------------------------------------------
+DROP FUNCTION IF EXISTS ChapList_DB.USERS_EXISTS;
+$
+CREATE FUNCTION USER_EXISTS(USU VARCHAR(100))
+RETURNS INT
+BEGIN
+DECLARE usr INT;
+
+	IF (!(SELECT idusuario FROM usuario WHERE correo = USU) = '')
+     THEN 
+          SET usr = (SELECT idusuario FROM usuario WHERE correo = USU);
+          
+    ELSEIF (!(SELECT idusuario FROM usuario WHERE nick = USU) = '')
+     THEN  
+          SET usr = (SELECT idusuario FROM usuario WHERE nick = USU);
+    ELSE
+        SET usr = -1;
+                 
+    END IF;
+    
+    RETURN usr;
+-- 	SELECT 'EL PRODUCTO SE ACTUALIZO EXITOSAMENTE' AS Mensaje;
+END $
+

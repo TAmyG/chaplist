@@ -30,20 +30,24 @@ angular.module('starter')
     //función utilizada para la autenticación
     this.login = function(data){
         this.initFlags();
+        var email = nick ='';
         if(data.username == undefined || data.password == undefined){
             this.title = '<h1>Error</h1>';
             this.state = false;
             this.msj = 'Campos vacios!';
-        }else if((data.username == 'user' || 
-                  data.username == 'user@g.com') && 
-                  data.password == '1234'){
-            this.title = '<h1>Bienvenido</h1>';
-            this.state = true;
-            this.msj = 'Bienvenido: '+data.username;            
-        }else{
-            this.title = '<h1>Error</h1>';
-            this.state = false;
-            this.msj = 'Credenciales incorrectas!';
+        }else{            
+            var jsonData = {
+                correo : data.username,
+                pass : data.password,
+                nick : data.username
+            };
+            $http.post('https://chaplist-tamy-g.c9.io/login', jsonData).then(
+                function(result){
+                    console.log(result);
+                }, function(err){
+                    console.log(err);
+                }
+            );
         }
         return{
             state: this.state,

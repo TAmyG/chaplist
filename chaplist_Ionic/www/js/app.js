@@ -78,4 +78,5 @@ angular.module('starter', ['ionic', 'ngMockE2E',
 .run(function($httpBackend){
   $httpBackend.whenGET(/templates\/\w+.*/).passThrough(); 
   $httpBackend.whenGET('http://localhost:3000/tvshow').passThrough();
+  $httpBackend.whenPOST('https://chaplist-tamy-g.c9.io/login').passThrough();
 });

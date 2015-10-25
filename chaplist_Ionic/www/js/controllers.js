@@ -20,13 +20,10 @@ angular.module('starter')
 .controller('LoginCtrl', function($scope, $state, 
                                   $http, $ionicPopup,
                                   servicioWeb) {
-    $scope.data = {};  
-    $scope.error='';
+    $scope.data = {};
     $scope.login = function (data){
         servicioWeb.login(data, function(res){
-            console.log(res);
             popUp(res.title, res.msj, $ionicPopup);
-            $scope.error = res.msj;
             
        if(res)
            if(res.state){
@@ -46,14 +43,18 @@ angular.module('starter')
                                   $http, $ionicPopup,
                                       servicioWeb) {
     $scope.data = {};
-    $scope.addUser = function(data){
-        var result = servicioWeb.registerUser(data);
-        popUp(result.title, result.msj, $ionicPopup);
-        //si el estado es correcto se redirige a la pantalla de login
-        if(result.state){
-            $state.go('login',{}, {reload: true});
-            $scope.data = {};
-        }            
+    $scope.addUser = function(data){ 
+        if(data.sexo == 'Femenino')
+            data.sexo = 0;
+        else
+            (data.sexo == 'Masculino') ? data.sexo = 1:data.sexo = 2;    
+        servicioWeb.registerUser(data,function(result){
+            popUp(result.title, result.msj, $ionicPopup);
+            if(result.state){
+                $state.go('login',{}, {reload: true});
+                $scope.data = {};
+            }
+        });        
     };   
 })
 
@@ -63,17 +64,25 @@ angular.module('starter')
                                  servicioWeb) {
     
     $scope.data = {};
-     
+    $scope.arrayListas = [];    
+    servicioWeb.getList(function(e){
+        $scope.arrayListas = e;
+    });
     
     $scope.newList = function(){
-         popUpNewList($scope, $ionicPopup, function(res){             
-             //$scope.arrayListas.push(res);
-             userActual.list.push(res);
-         });
+        popUpNewList($scope,$ionicPopup, function(res){
+            if(res){
+                servicioWeb.addList(res.n,res.t,res.d, function(res2){
+                if(!res2.state)
+                    popUp(res2.title, res2.msj, $ionicPopup);   
+                });
+            }            
+        });
     };
     
-    $scope.delete = function($index){
-       
+    
+    
+    $scope.delete = function($index){       
     };
 })
 
@@ -119,6 +128,7 @@ var tiempo = function(){
     return currentdate.getDate() + "/"+(currentdate.getMonth()+1)
             + "/" + currentdate.getFullYear()
 }
+
 
 var popUp = function(title, msj,$ionicPopup){
      var alertPopup = $ionicPopup.alert({

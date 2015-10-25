@@ -6,27 +6,14 @@
   <ion-content class="padding">
     <div class="row"><div class="col text-center">     
       <br><br><br>
-      <div class="list card" data-ng-repeat="p in arrayListas">
-          <div class="item item-avatar">
-            <img src="http://www.payulatam.com/chile/sites/chile/files/comercios/soluciones/vende-con-pagina-web/sec2/solucion-carrito-de-compra.png">
-            <h2>{{p.n}}</h2>
-            <p>{{p.t}}</p>
-            <div class="item item-body">                
-                <p>{{p.d}} </p>
-              </div>
-          </div>
-          <div class="item tabs tabs-secondary tabs-icon-left">
-            <a class="tab-item" href="#/main/dash">
-              <i class="icon ion-android-radio-button-on"></i>
-              Ver
+      
+      <div class="list" ng-repeat="p in arrayListas">
+            <a class="item item-avatar" href="#">
+              <img src="http://www.payulatam.com/chile/sites/chile/files/comercios/soluciones/vende-con-pagina-web/sec2/solucion-carrito-de-compra.png">
+              <h2>{{p.nombre}}</h2>
+              <p>{{p.fecha}}</p>
             </a>
-            <a class="tab-item" ng-click="delete($index)" href="#">
-              <i class="icon ion-android-delete"></i>
-              Eliminar
-            </a>            
-          </div>
-      </div>
-     
+        </div>
     </div></div>
   </ion-content>
 </ion-view>

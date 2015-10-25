@@ -80,16 +80,22 @@ BEGIN
 	CALL UPDATE_PROD_LIST(3,7,11,11,'NUEVA DES');
 	CALL GET_PRODUCTOS(3);
 -- compartir lista
-     CALL SHARE_LIST('','pr0',3);
-     CALL SHARE_LIST('','pr1',3);
-     CALL SHARE_LIST('PRUEBA1','',4);
-     CALL SHARE_LIST('','pr2',3);
+     CALL SHARE_LIST('pr0',3);
+     CALL SHARE_LIST('pr1',3);
+     CALL SHARE_LIST('PRUEBA1',4);
+     CALL SHARE_LIST('pr2',3);
+     CALL SHARE_LIST('pr2',5);
+     CALL SHARE_LIST('pr2',6);
      
 -- obtener listas compartidas
 select * from compartir;
     CALL GET_SHARE_LISTS(1);
     CALL GET_SHARE_LISTS(2);
     CALL GET_SHARE_LISTS(3);
+    
+-- Borrar listas
+    CALL DELETE_LIST(1,1);
+    CALL DELETE_LIST(6,1);
 END $
 
 CALL PRUEBA_PROC();

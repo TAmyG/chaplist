@@ -2,7 +2,7 @@ angular.module('starter')
 
 .service('servicioWeb', function($http, localStorageService){
     this.key = 'listas-temp';
-    this.pattern = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;;
+    this.pattern = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
     
     if(localStorageService.get(this.key))
         this.listUsers = localStorageService.get(this.key);        
@@ -28,31 +28,51 @@ angular.module('starter')
  
     /*Funciones nativas-------------------------*/
     //función utilizada para la autenticación
-    this.login = function(data){
+    this.login = function(data, callback){
         this.initFlags();
-        var email = nick ='';
+        var jsonData = {
+                    correo : data.username,
+                    pass   : data.password,
+                    nick   : data.username
+        };
         if(data.username == undefined || data.password == undefined){
-            this.title = '<h1>Error</h1>';
-            this.state = false;
-            this.msj = 'Campos vacios!';
+            callback( {
+                title : '<h1>Error</h1>',
+                state : false,
+                msj : 'Campos vacios!',
+            });
         }else{            
-            var jsonData = {
-                correo : data.username,
-                pass : data.password,
-                nick : data.username
-            };
-            $http.post('https://chaplist-tamy-g.c9.io/login', jsonData).then(
+            $http.post('https://chaplist-tamy-g.c9.io/login',jsonData).then(
                 function(result){
-                    console.log(result);
+                    console.log('result');
+                    if(result.data.length > 0 ){
+                        console.log('result > 0');
+                        callback( {
+                            title : '<h1>Bienvenido!!</h1>',
+                            state : true,
+                            msj : 'Hola: '+result.data[0].nick,
+                            nick : result.data[0].nick,
+                            userId : result.data[0].idusuario
+                        })
+                    }else{
+                        console.log('result else');
+                        callback( {
+                            title : '<h1>Error!!</h1>',
+                            state : false,
+                            msj : 'Credenciales incorrectas!!',
+                        })
+                    }                    
+                    console.log(result.data[0]);
                 }, function(err){
+                    console.log('existellllll');
                     console.log(err);
+                    callback( {
+                        title : '<h1>Error</h1>',
+                        state : false,
+                        msj : JSON.stringify(err)
+                    })
                 }
             );
-        }
-        return{
-            state: this.state,
-            title: this.title,
-            msj: this.msj
         }
     }
     
@@ -101,6 +121,8 @@ angular.module('starter')
     this.initFlags = function(){
         this.title= '';
         this.msj = '';
-        this.state = true; 
+        this.state = true;
+        this.nick = '';
+        this.userId = 0;
     }
 });

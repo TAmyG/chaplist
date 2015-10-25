@@ -20,16 +20,20 @@ angular.module('starter')
 .controller('LoginCtrl', function($scope, $state, 
                                   $http, $ionicPopup,
                                   servicioWeb) {
-    $scope.data = {};    
+    $scope.data = {};  
+    $scope.error='';
     $scope.login = function (data){
-       var result = servicioWeb.login(data);
-       popUp(result.title, result.msj, $ionicPopup);
-        //si el estado es correcto se redirige a la pantalla de login
-       if(result.state){
-          $state.go('init',{}, {reload: true});
-          $scope.data = {};
-       }    
-        
+        servicioWeb.login(data, function(res){
+            console.log(res);
+            popUp(res.title, res.msj, $ionicPopup);
+            $scope.error = res.msj;
+            
+       if(res)
+           if(res.state){
+               $state.go('init',{}, {reload: true});
+                $scope.data = {};
+           }
+        });
     }
     
     $scope.registro = function(){

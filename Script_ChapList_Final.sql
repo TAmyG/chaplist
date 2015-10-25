@@ -210,8 +210,8 @@ $
 CREATE PROCEDURE CREAR_LISTA(IN NOM VARCHAR(45),IN DES VARCHAR(100),FEC VARCHAR(45),IN USR INT)
 BEGIN
 	INSERT 
-	INTO listas (nombre,descripcion,fecha,usuario_idusuario)
-	VALUES (NOM,DES,str_to_date(FEC, '%d/%m/%Y'),USR);
+	INTO listas (nombre,descripcion,fecha,usuario_idusuario,borrado)
+	VALUES (NOM,DES,str_to_date(FEC, '%d/%m/%Y'),USR,FALSE);
 -- 	SELECT 'La lista se creo con exito' AS Mensaje;
 END $
 
@@ -220,12 +220,22 @@ END $
 -- -----------------------------------------------------
 DROP PROCEDURE IF EXISTS ChapList_DB.DELETE_LIST;
 $
-CREATE PROCEDURE DELETE_LIST(IN LISTA INT)
+CREATE PROCEDURE DELETE_LIST(IN LISTA INT,IN USR INT)
 BEGIN
+
+DECLARE lis int;
+
+SET lis = (SELECT L.idlistas FROM listas L, usuario U WHERE L.usuario_idusuario = U.idusuario AND L.idlistas=LISTA AND U.idusuario = USR);
+
+IF (!(lis = ''))
+THEN
 	UPDATE listas
 	SET borrado = TRUE 
-	WHERE idlista = LISTA;
+	WHERE idlistas = LISTA;
+ELSE
+    SELECT 'permiso denegado';
 -- 	SELECT 'La lista se creo con exito' AS Mensaje;
+END IF;
 END $
 
 -- -----------------------------------------------------
@@ -238,7 +248,8 @@ BEGIN
 		SELECT idlistas,nombre,descripcion,fecha 
 		FROM listas 
 		WHERE usuario_idusuario = USR
-        AND borrado <> TRUE;
+        AND borrado <> TRUE
+        ORDER BY fecha;
 END $
 
 -- -----------------------------------------------------
@@ -249,11 +260,13 @@ $
 CREATE PROCEDURE GET_SHARE_LISTS(IN USR INT)
 BEGIN
 
-            SELECT L.idlistas,L.nombre,L.descripcion,L.fecha,L.borrado
-            FROM listas L, compartir C
+            SELECT L.idlistas,L.nombre,L.descripcion,L.fecha,L.borrado,U.nick,U.idusuario
+            FROM listas L, compartir C, usuario U
             WHERE C.usuario_idusuario = USR
             AND   C.listas_idlistas = L.idlistas
-            AND   L.borrado <> TRUE;
+            AND   L.borrado <> TRUE
+            AND   U.idusuario = L.usuario_idusuario
+            ORDER BY L.fecha;
 END $
 
 -- --------------------------------------------------------------------
@@ -340,63 +353,14 @@ END $
 -- -----------------------------------------------------
 DROP PROCEDURE IF EXISTS ChapList_DB.SHARE_LIST;
 $
-CREATE PROCEDURE SHARE_LIST(IN COR VARCHAR(100),IN NIC VARCHAR(100),IN LISTA INT)
+CREATE PROCEDURE SHARE_LIST(IN USR VARCHAR(100),IN LISTA INT)
 BEGIN
 DECLARE usuario int;
-SET usuario = GET_ID_USER(COR,NIC);
+SET usuario = USER_EXISTS(USR);
 	INSERT 
 	INTO compartir (listas_idlistas,usuario_idusuario)
 	VALUES (LISTA,usuario);
 -- 	SELECT 'EL PRODUCTO SE AGREGO EXITOSAMENTE' AS Mensaje;
-END $
-
--- -----------------------------------------------------
--- PROCEDIMIENTO PARA OBTENER ID POR CORREO O NICK	
--- -----------------------------------------------------
-DROP PROCEDURE IF EXISTS ChapList_DB.GET_ID_USER;
-$
-CREATE PROCEDURE GET_ID_USER(IN COR VARCHAR(100), IN NIC VARCHAR(100))
-BEGIN
-	IF (COR = '')
-     THEN SELECT idususario
-     FROM usuario
-     WHERE nick = NIC;
-    ELSE
-     SELECT idusuario
-     FROM usuario
-     WHERE correo = COR;
-    END IF;
--- 	SELECT 'EL PRODUCTO SE ACTUALIZO EXITOSAMENTE' AS Mensaje;
-END $
-
--- -----------------------------------------------------
--- FUNCION PARA OBTENER ID POR CORREO O NICK	
--- -----------------------------------------------------
-DROP FUNCTION IF EXISTS ChapList_DB.GET_ID_USER;
-$
-CREATE FUNCTION GET_ID_USER(COR VARCHAR(100), NIC VARCHAR(100))
-RETURNS INT
-BEGIN
-DECLARE iduser int;
-
-	IF (COR = '')
-     THEN 
-          SET iduser =  (
-						SELECT idusuario
-                        FROM usuario
-                        WHERE nick = NIC
-                        );
-    ELSE
-          SET iduser =  (
-						SELECT idusuario
-                        FROM usuario
-                        WHERE correo = COR
-                        );
-                 
-    END IF;
-    
-    RETURN iduser;
--- 	SELECT 'EL PRODUCTO SE ACTUALIZO EXITOSAMENTE' AS Mensaje;
 END $
 
 -- -----------------------------------------------------

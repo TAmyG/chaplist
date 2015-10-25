@@ -24,14 +24,13 @@ BEGIN
 -- login con nick
 	SET i=0;
 	WHILE i <= 5 DO
-		CALL LOGIN('','hd',CONCAT("pr",CAST(i as char(2))));
+		CALL LOGIN(CONCAT("pr",CAST(i as char(2))),'hd');
       SET i=i+1;
 	END WHILE;
 -- no login
-	CALL LOGIN('PRUE','hd','');
-	CALL LOGIN('PRUEBA0','had','');
-	CALL LOGIN('','hd','');
-	CALL LOGIN('','hd','PRUE');
+	CALL LOGIN('PRUE','hd');
+	CALL LOGIN('PRUEBA0','hd');
+	CALL LOGIN('pr1','hd');
 -- creacion de tipos
 	SET i=0;
 	WHILE i <= 25 DO
@@ -80,6 +79,17 @@ BEGIN
 -- actualizar producto
 	CALL UPDATE_PROD_LIST(3,7,11,11,'NUEVA DES');
 	CALL GET_PRODUCTOS(3);
+-- compartir lista
+     CALL SHARE_LIST('','pr0',3);
+     CALL SHARE_LIST('','pr1',3);
+     CALL SHARE_LIST('PRUEBA1','',4);
+     CALL SHARE_LIST('','pr2',3);
+     
+-- obtener listas compartidas
+select * from compartir;
+    CALL GET_SHARE_LISTS(1);
+    CALL GET_SHARE_LISTS(2);
+    CALL GET_SHARE_LISTS(3);
 END $
 
 CALL PRUEBA_PROC();

@@ -1,6 +1,7 @@
 <ion-view view-title="ChapList"   name="list-view">
   <ion-nav-buttons side="right">
-    <button class="button icon-left ion-plus-round button-balanced" ng-click="newList()"></button>
+    <button class="button icon-left ion-plus-round button-energized" ng-click="newList()"></button>
+    <button class="button icon-left ion-log-out button-assertive" ng-click="logout()">Logout</button>
   </ion-nav-buttons>
  
   <ion-content class="padding">
@@ -11,11 +12,19 @@
             <a class="item item-avatar"  ng-click="edit(p)">
               <img src="http://www.payulatam.com/chile/sites/chile/files/comercios/soluciones/vende-con-pagina-web/sec2/solucion-carrito-de-compra.png">
               <h2>{{p.nombre}}</h2>
-              <p>{{p.fecha}}</p>
-              
+              <p>{{p.fecha}}</p>              
             </a>
             <a><span class="item-note" ng-click="delete(p)">
               <i class="icon ion-close-circled"></i></span></a> 
+        </div>
+        <!--Compartidas-->
+        <div class="list" ng-repeat="p in arrayShareList">
+            <a class="item item-avatar"  ng-click="edit(p)">
+              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSsW9X7O7mWHDGVWchX431zg75c12r05cHwT4WAhKDfPGqClJHezA">
+              <h2>{{p.nombre}}</h2>
+              <p>{{p.fecha}}</p>
+              <span class="item-note">creador: <h3>{{p.nick}}</h3></span>
+            </a>
         </div>
     
   </ion-content>

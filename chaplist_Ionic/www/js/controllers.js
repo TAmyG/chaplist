@@ -14,20 +14,34 @@ angular.module('starter')
 
 /*------------------------------------------------------------------------------------*/
 .controller('AppCtrl', function() {})
+
+.controller('ListCtrl', function($scope, $state, 
+                                   $ionicPopup,
+                                  servicioWeb) {
+    $scope.myLists = function(){
+        $state.go('init',{}, {reload: true});
+    }
+
+})
 /*------------------------------------------------------------------------------------*/
 .controller('DashCtrl', function($scope, $state, 
                                    $ionicPopup,
                                   servicioWeb) {
     $scope.data = {};
     $scope.listName = servicioWeb.getListName();
+    $scope.listDescription = servicioWeb.getListDescription();
     $scope.shareList = function(){
          popUpShareList($scope,$ionicPopup, function(res){
              if(res)
                  servicioWeb.shareListDB(res,function(res){
-                     popUp(re.title, res.msj, $ionicPopup);
+                     popUp(res.title, res.msj, $ionicPopup);
                  });
          } )  
-    }    
+    }
+    
+    $scope.myLists = function(){
+        $state.go('init',{}, {reload: true});
+    }
 })
 /*------------------------------------------------------------------------------------*/
 .controller('PublicCtrl', function($scope, $state, 
@@ -54,6 +68,10 @@ angular.module('starter')
         console.log($scope.myContent);
         
     });
+    
+    $scope.myLists = function(){
+        $state.go('init',{}, {reload: true});
+    }
     
 })
 
@@ -109,25 +127,42 @@ angular.module('starter')
     $scope.listCanSwipe = true
     
     $scope.data = {};
-    $scope.arrayListas = [];    
-    servicioWeb.getListDB(function(res){
-        $scope.arrayListas = res;    
-    });   
-    
+    $scope.arrayListas = [];
+    $scope.arrayShareList = [];
+    getListas();
     $scope.newList = function(){
         popUpNewList($scope,$ionicPopup, function(res){
             if(res){
                 servicioWeb.addList(res.n,res.t,res.d, function(res2){
                     if(!res2.state)
                         popUp(res2.title, res2.msj, $ionicPopup);                         
-                    else
-                        servicioWeb.getListDB(function(res){
-                            $scope.arrayListas = res;    
-                        });                            
+                    else{//tipo , callback
+                       getListas();
+                    }                        
                 });
             }            
         });
     };
+    
+    $scope.logout = function(){
+        servicioWeb.destroyUserCredentials();
+         $state.go('login',{}, {reload: true});
+    }
+    
+    //función que llama las listas tanto compartidas como propias de un usuario logueado
+    function getListas(){
+        servicioWeb.getListDB(1, function(res){
+            if(res){
+                $scope.arrayListas = res;//mis listas
+                servicioWeb.getListDB(2, function(res2){
+                    if(res2){
+                        $scope.arrayShareList = res2;//mis listas compartidas
+                        console.log(res2);
+                    }else popUp('<h1>Error</h1>', 'No se procesaron listas',$ionicPopup);
+                });                             
+            }else popUp('<h1>Error</h1>', 'No se procesaron listas',$ionicPopup);
+        });  
+    }
     
     $scope.edit = function(list){
         servicioWeb.storeListCredentials(list);

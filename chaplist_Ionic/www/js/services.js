@@ -7,6 +7,7 @@ angular.module('starter')
     var isAuthenticated = false;
     var isList = false;
     var listName;
+    var listDescription;
     var listId;
     var username;
     var userId;   
@@ -173,14 +174,21 @@ angular.module('starter')
  
     
     //función que obtiene las listas correspondientes a un usuario desde la API0
-    this.getListDB = function(callback){
+    this.getListDB = function(tipo, callback){
         var params = {};
+        var link = '';
+        console.log(tipo);
         if(isAuthenticated){
-            $http.get('https://chaplist-tamy-g.c9.io/list/'+userId)
+            if(tipo == 1) //mis listas
+                link= 'https://chaplist-tamy-g.c9.io/list/'+userId;            
+            else if(tipo == 2)//compartidas conmigo
+                link= 'https://chaplist-tamy-g.c9.io/shareList/'+userId;
+            
+            $http.get(link)
             .success(function(data) {
                callback(data);
             })
-            .error(function(data) {                
+            .error(function(data) {
                 console.log(data,'Error getListDB');
             });                
         }else
@@ -204,28 +212,33 @@ angular.module('starter')
             console.log('no auth deleteListDB');
     }
     
-    this.getListName = function(){
-        return listName;
-    }
-    
+    //función que permite compartir la lista actual con un usuario cualquiera
     this.shareListDB = function(data,callback){
         var jsonShare = {};
         if(isAuthenticated && isList){
             jsonShare = {
-                user: data.username,
+                user: data.n,
                 idList: listId                
             };
             $http.post('https://chaplist-tamy-g.c9.io/shareList',jsonShare).then(
                 function(result){
-                    if(result.data.errno)
-                        callback( {
-                            title : '<h1>Error</h1>',
-                            msj : 'Lista no compartida, puede que no exista el usuario o sus datos sean incorrectos'
-                        })
-                    else
+                    //1062 dup entry
+                    //1452 no existe
+                    if(result.data.errno){
+                        if(result.data.errno == 1452)
+                            callback( {
+                                title : '<h1>Error</h1>',
+                                msj : 'Lista no compartida, puede que no exista el usuario o sus datos sean incorrectos'
+                            })
+                        else if(result.data.errno == 1062)
+                            callback( {
+                                title : '<h1>Error</h1>',
+                                msj : 'Ya se encuentra compartida con el usuario: <h1>'+data.n+'</h1>'
+                            })                        
+                    }else
                         callback( {
                             title : '<h1>Hecho</h1>',
-                            msj : 'Lista compartida con: <h1>'+data.username+'</h1>'
+                            msj : 'Lista compartida con: <h1>'+data.n+'</h1>'
                         })
                 },function(err){                    
                     callback( {
@@ -238,6 +251,13 @@ angular.module('starter')
             console.log('shareListDB Error');
     }
     
+    this.getListName = function(){
+        return listName;
+    }
+    
+    this.getListDescription = function(){
+        return listDescription;
+    }
     /*-----------------------AREA DE PRODUCTOS--------------------*/    
     /*----------------------------------------------------------------------*/
     /*----------------------------------------------------------------------*/
@@ -245,7 +265,6 @@ angular.module('starter')
         if(isAuthenticated && isList){
             $http.get('https://chaplist-tamy-g.c9.io/product/0').then(
                 function(result){
-                    console.log(result);
                     if(result.data)
                         callback(result.data);
                     else
@@ -282,6 +301,7 @@ angular.module('starter')
     function listCredentials(list) {
         isList = true;
         listName = list.nombre;
+        listDescription = list.descripcion;
         listId = list.idlistas;
     }
     
@@ -294,11 +314,15 @@ angular.module('starter')
     }
     
     //función para destruir una sesión
-   function destroyUserCredentials() {
+   this.destroyUserCredentials = function() {
         username = '';
         isAuthenticated = false;
         userId = '';
-        localStorage.removeItem(key);
+        isList = false;
+        listName = '';
+        listId = '';
+        localStorageService.remove(key);
+        localStorageService.remove(listKey);
       } //**********************************************************************************
     this.initFlags = function(){
         result.title = '';

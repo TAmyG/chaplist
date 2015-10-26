@@ -1,4 +1,7 @@
 <ion-view view-title="Public" name="dashboard-view">
+ <ion-nav-buttons side="right">
+    <button class="button icon-left ion-android-list button-positive" ng-click="myLists()">My Lists</button>
+  </ion-nav-buttons>
   <ion-content class="padding">    
       <div class="list card" ng-repeat="p in arrayProduct">
           <div class="item item-avatar">

@@ -64,7 +64,8 @@ angular.module('starter', ['ionic', 'ngMockE2E',
     url: 'main/admin',
     views: {
         'admin-tab': {
-          templateUrl: 'templates/admin.html'
+          templateUrl: 'templates/admin.html',
+          controller: 'ListCtrl'
         }
     }
   });

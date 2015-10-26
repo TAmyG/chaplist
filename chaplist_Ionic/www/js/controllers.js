@@ -18,6 +18,39 @@ angular.module('starter')
 .controller('ListCtrl', function($scope, $state, 
                                    $ionicPopup,
                                   servicioWeb) {
+    //ejecuta la función en search, cada vez que cambia la url
+    //de los tabas
+   $scope.$on('$locationChangeSuccess', function () {
+          $scope.updateList();
+    });    
+
+    $scope.updateList = function () {
+           servicioWeb.getProductDB(function(res){
+            if(res)
+                $scope.listProduct = res;            
+        });
+    };
+    $scope.updateList();
+    
+    $scope.listProduct = [];
+    
+    $scope.delete = function(item){
+        servicioWeb.deleteProductDB(item, function(res){
+            $scope.updateList();
+        });         
+    }
+    
+    $scope.edit = function(item){
+        console.log(item,'edit');
+    }
+    
+    $scope.mark = function(item){
+        item.mark = (item.mark==0) ? 1:0;
+        servicioWeb.markProductDB(item, function(res){
+            $scope.updateList();
+        }); 
+    }
+    
     $scope.myLists = function(){
         $state.go('init',{}, {reload: true});
     }
@@ -28,8 +61,17 @@ angular.module('starter')
                                    $ionicPopup,
                                   servicioWeb) {
     $scope.data = {};
-    $scope.listName = servicioWeb.getListName();
-    $scope.listDescription = servicioWeb.getListDescription();
+    
+    $scope.$on('$locationChangeSuccess', function () {
+          $scope.search();
+    });    
+
+    $scope.search = function () {
+           $scope.listDescription = servicioWeb.getListDescription();
+           $scope.listName = servicioWeb.getListName();
+    };
+    $scope.search();
+    
     $scope.shareList = function(){
          popUpShareList($scope,$ionicPopup, function(res){
              if(res)
@@ -52,8 +94,14 @@ angular.module('starter')
     var count = 0;
     servicioWeb.getAllProductDB(function(res){
         $scope.arrayProduct = res;
-        console.log(res);
     });
+    
+    $scope.addToList = function(item){
+        
+        servicioWeb.addToListDB(item, function(res){
+            popUp(res.title, res.msj, $ionicPopup);
+        });
+    }
     
     $scope.myLists = function(){
         $state.go('init',{}, {reload: true});
@@ -115,7 +163,14 @@ angular.module('starter')
     $scope.data = {};
     $scope.arrayListas = [];
     $scope.arrayShareList = [];
-    getListas();
+    $scope.$on('$locationChangeSuccess', function () {
+          $scope.search();
+    });    
+
+    $scope.search = function () {
+           getListas();
+    };
+    $scope.search();
     $scope.newList = function(){
         popUpNewList($scope,$ionicPopup, function(res){
             if(res){
@@ -140,10 +195,11 @@ angular.module('starter')
         servicioWeb.getListDB(1, function(res){
             if(res){
                 $scope.arrayListas = res;//mis listas
+                //console.log(res,'miLista');
                 servicioWeb.getListDB(2, function(res2){
                     if(res2){
+                        //console.log(res2,'miLista shared');
                         $scope.arrayShareList = res2;//mis listas compartidas
-                        console.log(res2);
                     }else popUp('<h1>Error</h1>', 'No se procesaron listas',$ionicPopup);
                 });                             
             }else popUp('<h1>Error</h1>', 'No se procesaron listas',$ionicPopup);
@@ -197,6 +253,7 @@ var popUpNewList = function($scope, $ionicPopup, callback){
       });
       myPopup.then(function(res) {
           callback(res);
+          $scope.data = {};
       });   
 }
 
@@ -225,6 +282,7 @@ var popUpShareList = function($scope, $ionicPopup, callback){
       });
       myPopup.then(function(res) {
           callback(res);
+          $scope.data = {};
       });   
 }
 

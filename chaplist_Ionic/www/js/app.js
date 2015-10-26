@@ -81,8 +81,10 @@ angular.module('starter', ['ionic', 'ngMockE2E',
   $httpBackend.whenGET(/templates\/\w+.*/).passThrough(); 
   $httpBackend.whenGET(new RegExp("https://chaplist-tamy-g.c9.io/\\w+")).passThrough();
   $httpBackend.whenDELETE(new RegExp("https://chaplist-tamy-g.c9.io/\\w+")).passThrough();
+  $httpBackend.whenPUT(new RegExp("https://chaplist-tamy-g.c9.io/\\w+")).passThrough();
   $httpBackend.whenPOST('https://chaplist-tamy-g.c9.io/login').passThrough();
     $httpBackend.whenPOST('https://chaplist-tamy-g.c9.io/user').passThrough();
     $httpBackend.whenPOST('https://chaplist-tamy-g.c9.io/list').passThrough();
     $httpBackend.whenPOST('https://chaplist-tamy-g.c9.io/shareList').passThrough();
+    $httpBackend.whenPOST('https://chaplist-tamy-g.c9.io/product').passThrough();
 });

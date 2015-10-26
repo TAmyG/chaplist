@@ -1,4 +1,4 @@
-<ion-view view-title="Public" name="dashboard-view">
+<ion-view view-title="Todos los productos" name="dashboard-view">
  <ion-nav-buttons side="right">
     <button class="button icon-left ion-android-list button-positive" ng-click="myLists()">My Lists</button>
   </ion-nav-buttons>
@@ -9,18 +9,17 @@
             
             <div class="item item-divider">
               <a class="item item-thumbnail-left">
-                      <img src="{{pet.imagen}}">
+                       <img src="{{pet.imagen}}">
                         <h2>{{pet.categoria}}</h2>
                     </a>              
               </div>
           
           <div class="list" ng-repeat="item in pet.producto">
-                        <a class="item item-avatar" href="#">
+                        <a class="item item-avatar" ng-click="addToList(item)">
                           <img src="{{item.imagen}}">
                           <h2>{{item.nombre}}</h2>
                         </a>
-
-                    </div>    
+        </div>
     </div>
   
   

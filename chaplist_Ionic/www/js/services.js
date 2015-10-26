@@ -13,16 +13,8 @@ angular.module('starter')
     var userId;   
     var pattern = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
     var deferred = $q.defer();//retorna la promesa de la respuesta
-    this.acList = [];//listas correspondientes al suario
+    this.acListP = [];//listas correspondientes al suario
     this.resultPromise;
-    
-    
-    
-    
-    /*Funciones de uso temporal-----------------*/
-     function updateLocalStorage(){
-        localStorageService.set(key, this.acList);
-    }
     
     /*-----------------------AREA DE USUARIOS------------------------------*/
     /*----------------------------------------------------------------------*/
@@ -148,7 +140,6 @@ angular.module('starter')
                 date: time,
                 userId: userId,
             };
-            console.log(jsonNewLsit);
             $http.post('https://chaplist-tamy-g.c9.io/list',jsonNewLsit).then(
                 function(result){
                     if(result.data.errno)
@@ -176,16 +167,15 @@ angular.module('starter')
     //función que obtiene las listas correspondientes a un usuario desde la API0
     this.getListDB = function(tipo, callback){
         var params = {};
-        var link = '';
-        console.log(tipo);
+        var link = '';        
         if(isAuthenticated){
             if(tipo == 1) //mis listas
                 link= 'https://chaplist-tamy-g.c9.io/list/'+userId;            
             else if(tipo == 2)//compartidas conmigo
                 link= 'https://chaplist-tamy-g.c9.io/shareList/'+userId;
-            
             $http.get(link)
             .success(function(data) {
+                //console.log(data,'111111111111111111111111111');
                callback(data);
             })
             .error(function(data) {
@@ -220,6 +210,7 @@ angular.module('starter')
                 user: data.n,
                 idList: listId                
             };
+            console.log(listId,'ID DE LA LISTA A COMPARTIR')
             $http.post('https://chaplist-tamy-g.c9.io/shareList',jsonShare).then(
                 function(result){
                     //1062 dup entry
@@ -276,7 +267,106 @@ angular.module('starter')
             );  
         }else
             console.log('getProductDB, no auth o islis',isAuthenticated,isList);
-    }  
+    }
+    
+    //'CALL ADD_PROD_LIST(?,?,?,?,?)', 
+    //[data.idList, data.idProduct, data.quantity, data.price, data.description]
+    this.addToListDB = function(item, callback){
+        var jsonP={};
+        if(isAuthenticated && isList){
+            jsonP = {
+                idList: listId,
+                idProduct: item.idproducto,
+                quantity:1,
+                price: 0,
+                description:'1 unidad'
+            };
+            $http.post('https://chaplist-tamy-g.c9.io/product',jsonP).then(
+                function(result){//1062 dupply
+                    if(result.data.errno)
+                        if(result.data.errno == 1062){
+                            callback({
+                                title: '<h1>Advertencia</h1>',
+                                msj: '<h2>El producto ya está en su lista</h2><br>Seleccione la pestaña List<br>para modificar su producto'
+                            });
+                        }else{
+                            callback({
+                                title: '<h1>Error</h1>',
+                                msj: 'No se pudo agregar el producto'
+                            });
+                        }                        
+                    else
+                        callback({
+                            title: '<h1>Bien</h1>',
+                            msj: 'Producto agregado'
+                        });
+                    
+                }, function(err){
+                    callback( {
+                            title : '<h1>Error</h1>',
+                            msj : 'Petición no procesada'
+                    });
+                }
+            );
+        }else
+            console.log('not auth addToListLocal');
+        
+    }
+    
+    //Función para obtener los productos de una lista específica
+    this.getProductDB = function(callback){
+        if(isAuthenticated && isList){
+            $http.get('https://chaplist-tamy-g.c9.io/product/'+listId).then(
+                function(result){
+                    if(result.data)
+                        callback(result.data);
+                    else
+                        callback([]);
+                }, function(err){
+                    console.log(err);
+                }
+            );
+        }else
+            console.log('not auth addToListLocal');
+    }
+    
+    //Función para eliminar un producto específico en
+    //una lista específica
+    // /list/:listId/product/:productId DELETE
+    //REMOVE_PROD_LIST(?,?)', [data.listId,data.productId]
+    this.deleteProductDB = function(p, callback){
+        if(isAuthenticated && isList){
+            $http.delete('https://chaplist-tamy-g.c9.io/list/'+listId+'/product/'+p.idproducto).then(
+                function(result){
+                    callback(1);
+                },function(err){     
+                    callback(-1);
+                }
+            );
+        }else console.log('not auth deleteProductDB');        
+    }
+    
+    //función para marcar un producto dentro de mi lista
+    ///list/:listId/productState/:productId
+    //CALL UPDATE_STATE_PROD_LIST(?,?,?)', [getData.listId,getData.productId,postData.state]
+    this.markProductDB = function(item, callback){
+        if(isAuthenticated && isList){
+            $http.put('https://chaplist-tamy-g.c9.io/list/'+listId+'/productState/'+item.idproducto,{state: item.mark}).then(
+                function(result){
+                    console.log(result);
+                    callback(1);
+                },function(err){
+                    console.log(err);
+                    callback(-1);
+                }
+            );
+        }else console.log('not auth deleteProductDB');        
+    }
+    
+     /*Funciones de uso temporal-----------------*/
+    function updateLocalStorage(){
+        localStorageService.set(listKey, this.acListP);
+    }
     
     
     /*-----------------------AREA DE FUNCIONES GENERICAS--------------------*/

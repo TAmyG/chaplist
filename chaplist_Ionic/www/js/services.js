@@ -363,12 +363,35 @@ angular.module('starter')
         }else console.log('not auth deleteProductDB');        
     }
     
+    //Función para actualizar un producto en específico
+    ///list/:listId/product/:productId
+    // UPDATE_PROD_LIST(?,?,?,?,?)', [getData.listId,getData.productId,postData.quantity,postData.price,postData.description]
+    this.updateProductDB = function(item, callback){
+        var jsonP = {};
+        if(isAuthenticated && isList){
+            jsonP = {
+                listId: listId,
+                productId: item.idproducto,
+                quantity: item.cantidad,
+                price: item.precio,
+                description: item.descripcion
+            };
+            $http.put('https://chaplist-tamy-g.c9.io/list/'+listId+'/product/'+item.idproducto, jsonP).then(
+                function(result){
+                    console.log(result);
+                    callback(1);
+                },function(err){
+                    console.log(err);
+                    callback(-1);
+                }
+            );
+        }else console.log('not auth updateProductDB');  
+    }
+    
      /*Funciones de uso temporal-----------------*/
     function updateLocalStorage(){
         localStorageService.set(listKey, this.acListP);
     }
-    
-    
     /*-----------------------AREA DE FUNCIONES GENERICAS--------------------*/
     /*----------------------------------------------------------------------*/
     /*----------------------------------------------------------------------*/

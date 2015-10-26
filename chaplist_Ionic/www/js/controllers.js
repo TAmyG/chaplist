@@ -1,25 +1,12 @@
-var arrayUser=[{
-        username: 'usuario',
-        password: '1234',
-        list: [{
-                    n:'testList',
-                    d: 'Productos varios',
-                    t: '16/10/2015'
-               }]
-    }]
-
-var userActual
-
 angular.module('starter')
 
 /*------------------------------------------------------------------------------------*/
 .controller('AppCtrl', function() {})
 
-.controller('ListCtrl', function($scope, $state, 
-                                   $ionicPopup,
-                                  servicioWeb) {
+.controller('ListCtrl', function($scope, $state, $ionicPopup, servicioWeb) {    
+    $scope.data = {};
     //ejecuta la función en search, cada vez que cambia la url
-    //de los tabas
+    //de los tabs
    $scope.$on('$locationChangeSuccess', function () {
           $scope.updateList();
     });    
@@ -40,10 +27,6 @@ angular.module('starter')
         });         
     }
     
-    $scope.edit = function(item){
-        console.log(item,'edit');
-    }
-    
     $scope.mark = function(item){
         item.mark = (item.mark==0) ? 1:0;
         servicioWeb.markProductDB(item, function(res){
@@ -54,7 +37,45 @@ angular.module('starter')
     $scope.myLists = function(){
         $state.go('init',{}, {reload: true});
     }
-
+    
+    /*
+    'precio'
+    'cantidad'
+    'descripcion'
+    */
+    $scope.edit = function(item){
+        $scope.data = item;
+          var myPopup = $ionicPopup.show({
+            template: '<div class="list"> <div class="item item-avatar"><img data-ng-src="{{data.imagen}}"> </div>'+
+            '<label class="item item-input "><span class="input-label">Precio</span><input type="number" ng-model="data.precio"></label>'+
+            '<label class="item item-input "><span class="input-label">Cantidad</span><input type="number" ng-model="data.cantidad"></label>'+
+            '</div> <span class="input-label">Descripción</span>'+
+            '<textarea rows="4" cols="50" ng-model="data.descripcion"></textarea>',
+            title: $scope.data.nombre,
+            scope: $scope,
+            buttons: [
+              { text: 'Cancel' },
+              {
+                text: '<b>Save</b>',
+                type: 'button-positive',
+                onTap: function(e) {
+                  if (!$scope.data) {
+                    //don't allow the user to close unless he enters wifi password
+                    e.preventDefault();
+                  } else {
+                    return $scope.data;
+                  }
+                }
+              }
+            ]
+          });
+          myPopup.then(function(res) {
+            if(res)
+                servicioWeb.updateProductDB(res, function(){
+                    $scope.updateList();
+                });
+          });
+    }
 })
 /*------------------------------------------------------------------------------------*/
 .controller('DashCtrl', function($scope, $state, 

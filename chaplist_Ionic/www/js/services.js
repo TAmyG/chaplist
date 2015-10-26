@@ -268,7 +268,7 @@ angular.module('starter')
                     if(result.data)
                         callback(result.data);
                     else
-                        callback([]);                    
+                        callback([]);  
                 },function(err){
                     callback([]);
                     console.log(err);

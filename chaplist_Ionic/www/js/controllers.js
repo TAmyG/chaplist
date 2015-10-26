@@ -48,25 +48,11 @@ angular.module('starter')
                                    $ionicPopup,
                                   servicioWeb) {
     $scope.arrayProduct = [];
-    $scope.myContent = 'mula';
+    $scope.myContent = '';
     var count = 0;
     servicioWeb.getAllProductDB(function(res){
-        console.log(res);
         $scope.arrayProduct = res;
-        /*res.forEach(function(ele){
-            console.log(ele);
-            if(count == 0)
-                $scope.myContent += '<div class="row">';
-            if(count < 5){
-                $scope.myContent+= '<div class="col">.col</div>';
-                count ++;
-            }else{
-                $scope.myContent+= '</div>';
-                count = 0;
-            }
-        });*/
-        console.log($scope.myContent);
-        
+        console.log(res);
     });
     
     $scope.myLists = function(){

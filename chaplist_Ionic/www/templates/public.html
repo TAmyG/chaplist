@@ -3,12 +3,26 @@
     <button class="button icon-left ion-android-list button-positive" ng-click="myLists()">My Lists</button>
   </ion-nav-buttons>
   <ion-content class="padding">    
-      <div class="list card" ng-repeat="p in arrayProduct">
-          <div class="item item-avatar">
-            <img src="mcfly.jpg">
-            <h2>{{p.producto}}</h2>
-            <p>{{p.categoria}}</p>
-          </div>      
-      </div>
+          
+    <div class="list card" ng-repeat="pet in arrayProduct">
+
+            
+            <div class="item item-divider">
+              <a class="item item-thumbnail-left">
+                      <img src="{{pet.imagen}}">
+                        <h2>{{pet.categoria}}</h2>
+                    </a>              
+              </div>
+          
+          <div class="list" ng-repeat="item in pet.producto">
+                        <a class="item item-avatar" href="#">
+                          <img src="{{item.imagen}}">
+                          <h2>{{item.nombre}}</h2>
+                        </a>
+
+                    </div>    
+    </div>
+  
+  
   </ion-content>
 </ion-view>

@@ -15,10 +15,51 @@ angular.module('starter')
 /*------------------------------------------------------------------------------------*/
 .controller('AppCtrl', function() {})
 /*------------------------------------------------------------------------------------*/
-.controller('DashCtrl', function() {})
+.controller('DashCtrl', function($scope, $state, 
+                                   $ionicPopup,
+                                  servicioWeb) {
+    $scope.data = {};
+    $scope.listName = servicioWeb.getListName();
+    $scope.shareList = function(){
+         popUpShareList($scope,$ionicPopup, function(res){
+             if(res)
+                 servicioWeb.shareListDB(res,function(res){
+                     popUp(re.title, res.msj, $ionicPopup);
+                 });
+         } )  
+    }    
+})
+/*------------------------------------------------------------------------------------*/
+.controller('PublicCtrl', function($scope, $state, 
+                                   $ionicPopup,
+                                  servicioWeb) {
+    $scope.arrayProduct = [];
+    $scope.myContent = 'mula';
+    var count = 0;
+    servicioWeb.getAllProductDB(function(res){
+        console.log(res);
+        $scope.arrayProduct = res;
+        /*res.forEach(function(ele){
+            console.log(ele);
+            if(count == 0)
+                $scope.myContent += '<div class="row">';
+            if(count < 5){
+                $scope.myContent+= '<div class="col">.col</div>';
+                count ++;
+            }else{
+                $scope.myContent+= '</div>';
+                count = 0;
+            }
+        });*/
+        console.log($scope.myContent);
+        
+    });
+    
+})
+
 /*------------------------------------------------------------------------------------*/
 .controller('LoginCtrl', function($scope, $state, 
-                                  $http, $ionicPopup,
+                                   $ionicPopup,
                                   servicioWeb) {
     $scope.data = {};
     $scope.login = function (data){
@@ -40,7 +81,7 @@ angular.module('starter')
 
 /*------------------------------------------------------------------------------------*/
 .controller('RegistroCtrl', function($scope, $state, 
-                                  $http, $ionicPopup,
+                                   $ionicPopup,
                                       servicioWeb) {
     $scope.data = {};
     $scope.addUser = function(data){ 
@@ -60,29 +101,46 @@ angular.module('starter')
 
 /*------------------------------------------------------------------------------------*/
 .controller('InitCtrl', function($scope, $state, 
-                                  $http, $ionicPopup,
+                                  $ionicPopup,
                                  servicioWeb) {
+    
+    $scope.shouldShowDelete = false;
+    $scope.shouldShowReorder = false;
+    $scope.listCanSwipe = true
     
     $scope.data = {};
     $scope.arrayListas = [];    
-    servicioWeb.getList(function(e){
-        $scope.arrayListas = e;
-    });
+    servicioWeb.getListDB(function(res){
+        $scope.arrayListas = res;    
+    });   
     
     $scope.newList = function(){
         popUpNewList($scope,$ionicPopup, function(res){
             if(res){
                 servicioWeb.addList(res.n,res.t,res.d, function(res2){
-                if(!res2.state)
-                    popUp(res2.title, res2.msj, $ionicPopup);   
+                    if(!res2.state)
+                        popUp(res2.title, res2.msj, $ionicPopup);                         
+                    else
+                        servicioWeb.getListDB(function(res){
+                            $scope.arrayListas = res;    
+                        });                            
                 });
             }            
         });
     };
     
+    $scope.edit = function(list){
+        servicioWeb.storeListCredentials(list);
+         $state.go('main.public',{}, {reload: true});
+        
+    }
     
-    
-    $scope.delete = function($index){       
+    $scope.delete = function(list){ 
+        servicioWeb.deleteListDB(list,function(res){
+            servicioWeb.getListDB(function(res){        
+                $scope.arrayListas = res;
+            });
+        });        
     };
 })
 
@@ -121,6 +179,33 @@ var popUpNewList = function($scope, $ionicPopup, callback){
       });   
 }
 
+//función para compartir las nuevas listas
+var popUpShareList = function($scope, $ionicPopup, callback){
+    var myPopup = $ionicPopup.show({
+        template: '<input type="text" placeholder="nombre" ng-model="data.username">',
+        title: 'Comparte tu lista',
+        subTitle: 'Comparte con tus conocidos',
+        scope: $scope,
+        buttons: [
+          { text: 'Cancel' },
+          {
+            text: '<b>Save</b>',
+            type: 'button-positive',
+            onTap: function(e) {
+              if (!$scope.data.username )
+                e.preventDefault();
+               else
+                return {
+                    n:$scope.data.username
+               }
+            }
+          }
+        ]
+      });
+      myPopup.then(function(res) {
+          callback(res);
+      });   
+}
 
 //función que retorna la fecha actual, útil para la creación de las listas
 var tiempo = function(){

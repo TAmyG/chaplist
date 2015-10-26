@@ -1,21 +1,28 @@
 angular.module('starter')
 
-.service('servicioWeb', function($http, localStorageService){
+.service('servicioWeb', function($http, $q, localStorageService){
     var key = 'userKey';    
+    var listKey = 'listKey';    
     var result = {};
     var isAuthenticated = false;
+    var isList = false;
+    var listName;
+    var listId;
     var username;
-    var userId;    
-    var authToken;
+    var userId;   
     var pattern = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+    var deferred = $q.defer();//retorna la promesa de la respuesta
+    this.acList = [];//listas correspondientes al suario
+    this.resultPromise;
     
-    this.acLists = [];//listas correspondientes al suario
+    
+    
     
     /*Funciones de uso temporal-----------------*/
-    this.updateLocalStorage = function(){
-        localStorageService.set(this.key, this.listUsers);
+     function updateLocalStorage(){
+        localStorageService.set(key, this.acList);
     }
-     
+    
     /*-----------------------AREA DE USUARIOS------------------------------*/
     /*----------------------------------------------------------------------*/
     /*----------------------------------------------------------------------*/
@@ -35,23 +42,30 @@ angular.module('starter')
         }else{            
             $http.post('https://chaplist-tamy-g.c9.io/login',jsonData).then(
                 function(result){
-                    console.log('result');
-                    if(result.data[0].idusuario !== '-1'){
-                        callback( {
-                            title : '<h1>Bienvenido!!</h1>',
-                            state : true,
-                            msj : 'Hola: '+result.data[0].nick,
-                            nick : result.data[0].nick
-                        })
-                         storeUserCredentials({nick: result.data[0].nick,
-                                               id: result.data[0].idusuario});
+                    if(result.data[0]){
+                        if(result.data[0].idusuario !== '-1'){
+                            storeUserCredentials({nick: result.data[0].nick,
+                                                   id: result.data[0].idusuario});
+                            callback( {
+                                title : '<h1>Bienvenido!!</h1>',
+                                state : true,
+                                msj : 'Hola: '+result.data[0].nick,
+                                nick : result.data[0].nick
+                            })                             
+                        }else{
+                            callback( {
+                                title : '<h1>Error!!</h1>',
+                                state : false,
+                                msj : 'Credenciales incorrectas!!',
+                            })
+                        }
                     }else{
-                        callback( {
-                            title : '<h1>Error!!</h1>',
-                            state : false,
-                            msj : 'Credenciales incorrectas!!',
-                        })
-                    }
+                            callback( {
+                                title : '<h1>Error!!</h1>',
+                                state : false,
+                                msj : 'Credenciales incorrectas!!',
+                            })
+                        }                 
                 }, function(err){
                     console.log(err);
                     callback( {
@@ -134,13 +148,13 @@ angular.module('starter')
                 userId: userId,
             };
             console.log(jsonNewLsit);
-             $http.post('https://chaplist-tamy-g.c9.io/list',jsonNewLsit).then(
+            $http.post('https://chaplist-tamy-g.c9.io/list',jsonNewLsit).then(
                 function(result){
                     if(result.data.errno)
                         callback( {
                             title : '<h1>Error</h1>',
                             state : false,
-                            msj : 'Lista ya existe'
+                            msj : 'Error al agregar la lista'
                         })
                     else
                         callback( {
@@ -153,29 +167,98 @@ angular.module('starter')
                             msj : 'Petición no enviada'
                         })
                 }
-            )    
+            );
         }
     }
+ 
     
-    //función que obtiene las listas correspondientes a un usuario
-    this.getList = function(callback){
+    //función que obtiene las listas correspondientes a un usuario desde la API0
+    this.getListDB = function(callback){
         var params = {};
         if(isAuthenticated){
-            params = {
-                userId: userId
-            };
             $http.get('https://chaplist-tamy-g.c9.io/list/'+userId)
-            .success(function(data) {                
-                this.acLists = data;
-                callback( data);
-                
+            .success(function(data) {
+               callback(data);
             })
-            .error(function(data) {
-                console.log(data);
-            });    
+            .error(function(data) {                
+                console.log(data,'Error getListDB');
+            });                
         }else
             console.log('no está autenticado');
     }
+    
+    //función para eliminar las listas de un usuario
+    this.deleteListDB = function(data, callback){
+        data.listId,data.userId
+        if(isAuthenticated){
+            $http.delete('https://chaplist-tamy-g.c9.io/list/'+data.idlistas+'/user/'+userId).then(
+                function(result){
+                    console.log(result);
+                    callback(result);
+                },function(err){                    
+                    console.log(err);
+                    callback(err);
+                }
+            );            
+        }else
+            console.log('no auth deleteListDB');
+    }
+    
+    this.getListName = function(){
+        return listName;
+    }
+    
+    this.shareListDB = function(data,callback){
+        var jsonShare = {};
+        if(isAuthenticated && isList){
+            jsonShare = {
+                user: data.username,
+                idList: listId                
+            };
+            $http.post('https://chaplist-tamy-g.c9.io/shareList',jsonShare).then(
+                function(result){
+                    if(result.data.errno)
+                        callback( {
+                            title : '<h1>Error</h1>',
+                            msj : 'Lista no compartida, puede que no exista el usuario o sus datos sean incorrectos'
+                        })
+                    else
+                        callback( {
+                            title : '<h1>Hecho</h1>',
+                            msj : 'Lista compartida con: <h1>'+data.username+'</h1>'
+                        })
+                },function(err){                    
+                    callback( {
+                            title : '<h1>Error</h1>',
+                            msj : 'Petición no procesada'
+                        });
+                }
+            );         
+        }else
+            console.log('shareListDB Error');
+    }
+    
+    /*-----------------------AREA DE PRODUCTOS--------------------*/    
+    /*----------------------------------------------------------------------*/
+    /*----------------------------------------------------------------------*/
+    this.getAllProductDB = function(callback){
+        if(isAuthenticated && isList){
+            $http.get('https://chaplist-tamy-g.c9.io/product/0').then(
+                function(result){
+                    console.log(result);
+                    if(result.data)
+                        callback(result.data);
+                    else
+                        callback([]);                    
+                },function(err){
+                    callback([]);
+                    console.log(err);
+                }
+            );  
+        }else
+            console.log('getProductDB, no auth o islis',isAuthenticated,isList);
+    }  
+    
     
     /*-----------------------AREA DE FUNCIONES GENERICAS--------------------*/
     /*----------------------------------------------------------------------*/
@@ -183,10 +266,24 @@ angular.module('starter')
     
     //Guarda las credenciales del ususario (nick, id) en el almacenamiento
     //local con localStorage
-    function storeUserCredentials(token) {      
-        localStorage.setItem(key, token);
+    function storeUserCredentials(token) {           
+        localStorageService.set(key, token);
         useCredentials(token);
       }
+    
+    //Guarda las credenciales de una lista en el almacenamiento
+    //local con localStorage
+    this.storeListCredentials = function(list) {      
+        localStorageService.set(listKey, list);
+        listCredentials(list);
+    }
+    //funcion para setear las credenciales de la lista actual, en variables
+    //locales para la manipulación de los demás procesos
+    function listCredentials(list) {
+        isList = true;
+        listName = list.nombre;
+        listId = list.idlistas;
+    }
     
     //funcion para setear las credenciales del usuario, en variables
     //locales para la manipulación de los demás procesos
@@ -194,12 +291,10 @@ angular.module('starter')
         username = token.nick;
         isAuthenticated = true;
         userId = token.id;
-        authToken = token;
     }
     
     //función para destruir una sesión
    function destroyUserCredentials() {
-        authToken = undefined;
         username = '';
         isAuthenticated = false;
         userId = '';

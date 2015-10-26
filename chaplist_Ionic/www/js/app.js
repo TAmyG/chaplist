@@ -55,7 +55,8 @@ angular.module('starter', ['ionic', 'ngMockE2E',
     url: 'main/public',
     views: {
         'public-tab': {
-          templateUrl: 'templates/public.html'
+          templateUrl: 'templates/public.html',
+          controller: 'PublicCtrl'
         }
     }
   })
@@ -78,7 +79,9 @@ angular.module('starter', ['ionic', 'ngMockE2E',
 .run(function($httpBackend){
   $httpBackend.whenGET(/templates\/\w+.*/).passThrough(); 
   $httpBackend.whenGET(new RegExp("https://chaplist-tamy-g.c9.io/\\w+")).passThrough();
+  $httpBackend.whenDELETE(new RegExp("https://chaplist-tamy-g.c9.io/\\w+")).passThrough();
   $httpBackend.whenPOST('https://chaplist-tamy-g.c9.io/login').passThrough();
     $httpBackend.whenPOST('https://chaplist-tamy-g.c9.io/user').passThrough();
     $httpBackend.whenPOST('https://chaplist-tamy-g.c9.io/list').passThrough();
+    $httpBackend.whenPOST('https://chaplist-tamy-g.c9.io/shareList').passThrough();
 });

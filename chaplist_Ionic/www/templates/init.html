@@ -4,16 +4,19 @@
   </ion-nav-buttons>
  
   <ion-content class="padding">
-    <div class="row"><div class="col text-center">     
+      
       <br><br><br>
       
       <div class="list" ng-repeat="p in arrayListas">
-            <a class="item item-avatar" href="#">
+            <a class="item item-avatar"  ng-click="edit(p)">
               <img src="http://www.payulatam.com/chile/sites/chile/files/comercios/soluciones/vende-con-pagina-web/sec2/solucion-carrito-de-compra.png">
               <h2>{{p.nombre}}</h2>
               <p>{{p.fecha}}</p>
+              
             </a>
+            <a><span class="item-note" ng-click="delete(p)">
+              <i class="icon ion-close-circled"></i></span></a> 
         </div>
-    </div></div>
+    
   </ion-content>
 </ion-view>

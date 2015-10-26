@@ -1,5 +1,11 @@
 <ion-view view-title="Public" name="dashboard-view">
-  <ion-content class="padding">
-      This is open for everyone!
+  <ion-content class="padding">    
+      <div class="list card" ng-repeat="p in arrayProduct">
+          <div class="item item-avatar">
+            <img src="mcfly.jpg">
+            <h2>{{p.producto}}</h2>
+            <p>{{p.categoria}}</p>
+          </div>      
+      </div>
   </ion-content>
 </ion-view>

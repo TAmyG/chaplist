@@ -23,5 +23,6 @@
   ],
   "cordovaPlatforms": [
     "android"
+    "android-platform"
   ]
 }
